@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Group 20 Client Management</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --surface: #ffffff;
+      --surface-2: #f7f9ff;
+      --text: #18243f;
+      --muted: #647093;
+      --primary: #3559e0;
+      --primary-2: #2742ac;
+      --danger: #d84646;
+      --success: #1f8a4c;
+      --border: #d9e0f2;
+      --shadow: 0 8px 24px rgba(12, 30, 75, 0.08);
+    }
+
+    body.dark {
+      --bg: #111527;
+      --surface: #1b2138;
+      --surface-2: #242c49;
+      --text: #e8edff;
+      --muted: #a8b3d9;
+      --primary: #6a87ff;
+      --primary-2: #4e6ef5;
+      --danger: #ff7373;
+      --success: #39c26f;
+      --border: #334067;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.2s, color 0.2s;
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    .hidden { display: none !important; }
+
+    .login-shell {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: 12px;
+    }
+
+    .login-card {
+      width: min(430px, 100%);
+      padding: 26px;
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 14px;
+    }
+
+    .sub {
+      color: var(--muted);
+      margin: -6px 0 18px;
+      font-size: 0.95rem;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 11px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn.primary { background: var(--primary); color: #fff; }
+    .btn.primary:hover { background: var(--primary-2); }
+    .btn.neutral { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .btn.danger { background: var(--danger); color: #fff; }
+
+    .hint { font-size: 0.83rem; color: var(--muted); margin-top: 10px; }
+    .error { color: var(--danger); font-size: 0.88rem; min-height: 20px; margin-top: 8px; }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+    }
+
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .brand {
+      font-weight: 700;
+      font-size: 1rem;
+      line-height: 1.45;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-btn {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text);
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-btn.active,
+    .nav-btn:hover {
+      background: var(--surface-2);
+      border-color: var(--border);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      display: grid;
+      gap: 8px;
+    }
+
+    .content {
+      padding: 18px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .user-pill {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      font-size: 0.9rem;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .metric {
+      padding: 14px;
+    }
+
+    .metric .value {
+      font-size: 1.42rem;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    .section {
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .section-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.94rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--surface-2);
+      font-weight: 600;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .status {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      border: 1px solid var(--border);
+      display: inline-block;
+    }
+
+    .task-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .task-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface-2);
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .team-card {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface-2);
+    }
+
+    .note { color: var(--muted); font-size: 0.9rem; }
+
+    @media (max-width: 980px) {
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .team-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { position: sticky; top: 0; z-index: 20; border-right: 0; border-bottom: 1px solid var(--border); }
+      .sidebar nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+      .brand { border-bottom: 0; padding-bottom: 0; }
+      .form-grid { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main id="loginView" class="login-shell">
+    <section class="login-card card">
+      <h1>Client Management Portal</h1>
+      <p class="sub">Group 20 – University of Ghana Level 200</p>
+      <form id="loginForm" class="form-grid">
+        <div class="field full">
+          <label for="username">Username</label>
+          <input id="username" required />
+        </div>
+        <div class="field full">
+          <label for="password">Password</label>
+          <input id="password" type="password" required />
+        </div>
+        <div class="field full">
+          <button class="btn primary" type="submit">Sign In</button>
+        </div>
+      </form>
+      <div class="hint">Demo accounts: <b>admin/admin123</b> or <b>staff/staff123</b></div>
+      <div class="error" id="loginError"></div>
+    </section>
+  </main>
+
+  <main id="appView" class="app hidden">
+    <aside class="sidebar">
+      <div class="brand">Group 20 CRM<br><small>Team Lead: Emmanuel Buabeng</small></div>
+      <nav>
+        <button class="nav-btn active" data-view="dashboard">📊 Dashboard</button>
+        <button class="nav-btn" data-view="clients">👥 Clients</button>
+        <button class="nav-btn" data-view="team">🧑‍🤝‍🧑 Team</button>
+        <button class="nav-btn" data-view="settings">⚙️ Settings</button>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="darkModeBtn" class="btn neutral" type="button">🌙 Toggle Dark Mode</button>
+        <button id="logoutBtn" class="btn neutral" type="button">↩ Logout</button>
+      </div>
+    </aside>
+
+    <section class="content">
+      <div class="topbar">
+        <h2 id="viewTitle">Dashboard</h2>
+        <div id="userPill" class="user-pill"></div>
+      </div>
+
+      <section id="dashboard" class="screen">
+        <div class="metrics">
+          <article class="metric card"><div>Total Clients</div><div class="value" id="metricClients">0</div></article>
+          <article class="metric card"><div>Active Projects</div><div class="value" id="metricActive">0</div></article>
+          <article class="metric card"><div>Revenue / Paid (GHS)</div><div class="value" id="metricRevenue">0 / 0</div></article>
+          <article class="metric card"><div>Pending Tasks</div><div class="value" id="metricPending">0</div></article>
+        </div>
+
+        <article class="section card">
+          <h3>Business Snapshot</h3>
+          <p class="note">Track client portfolio health, task completion, and project revenue in one view.</p>
+        </article>
+      </section>
+
+      <section id="clients" class="screen hidden">
+        <article class="section card">
+          <div class="section-row">
+            <h3>Client Management</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button id="newClientBtn" class="btn primary" type="button">+ Add Client</button>
+              <button id="exportBtn" class="btn neutral" type="button">⬇ Export CSV</button>
+            </div>
+          </div>
+
+          <div class="form-grid" style="margin-bottom:10px;">
+            <div class="field">
+              <label for="searchInput">Search by Name</label>
+              <input id="searchInput" placeholder="Search clients..." />
+            </div>
+            <div class="field">
+              <label for="statusFilter">Filter by Status</label>
+              <select id="statusFilter">
+                <option value="">All</option>
+                <option>Active</option>
+                <option>On Hold</option>
+                <option>Completed</option>
+                <option>Prospect</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="overflow:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Company</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Status</th>
+                  <th>Budget (GHS)</th>
+                  <th>Paid (GHS)</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="clientsBody"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="section card">
+          <h3 id="taskTitle">Task Management</h3>
+          <p class="note" id="taskHint">Select a client to manage tasks.</p>
+          <form id="taskForm" class="form-grid hidden" style="margin-bottom:10px;">
+            <div class="field">
+              <label for="taskText">Task</label>
+              <input id="taskText" required />
+            </div>
+            <div class="field">
+              <label for="taskDue">Due Date</label>
+              <input id="taskDue" type="date" />
+            </div>
+            <div class="field">
+              <label for="taskStatus">Status</label>
+              <select id="taskStatus">
+                <option>Pending</option>
+                <option>Done</option>
+              </select>
+            </div>
+            <div class="field" style="align-self:end;">
+              <button class="btn primary" type="submit">Add Task</button>
+            </div>
+          </form>
+          <ul id="taskList" class="task-list"></ul>
+        </article>
+
+        <article class="section card hidden" id="clientEditorWrap">
+          <h3 id="editorTitle">Add Client</h3>
+          <form id="clientForm" class="form-grid">
+            <input type="hidden" id="clientId" />
+            <div class="field"><label>Name</label><input id="cName" required /></div>
+            <div class="field"><label>Company</label><input id="cCompany" required /></div>
+            <div class="field"><label>Email</label><input id="cEmail" type="email" required /></div>
+            <div class="field"><label>Phone</label><input id="cPhone" required /></div>
+            <div class="field"><label>Project Status</label>
+              <select id="cStatus" required>
+                <option>Active</option>
+                <option>On Hold</option>
+                <option>Completed</option>
+                <option>Prospect</option>
+              </select>
+            </div>
+            <div class="field"><label>Budget (GHS)</label><input id="cBudget" type="number" min="0" value="0" required /></div>
+            <div class="field"><label>Paid Amount (GHS)</label><input id="cPaid" type="number" min="0" value="0" required /></div>
+            <div class="field full" style="display:flex;gap:8px;">
+              <button class="btn primary" type="submit">Save Client</button>
+              <button class="btn neutral" id="cancelClientBtn" type="button">Cancel</button>
+            </div>
+          </form>
+        </article>
+      </section>
+
+      <section id="team" class="screen hidden">
+        <article class="section card">
+          <h3>Team Directory</h3>
+          <p class="sub">Group 20 – University of Ghana Level 200</p>
+          <div id="teamGrid" class="team-grid"></div>
+        </article>
+      </section>
+
+      <section id="settings" class="screen hidden">
+        <article class="section card">
+          <h3>Profile Settings</h3>
+          <form id="settingsForm" class="form-grid">
+            <div class="field">
+              <label for="profileName">Full Name</label>
+              <input id="profileName" required />
+            </div>
+            <div class="field">
+              <label for="profileEmail">Email</label>
+              <input id="profileEmail" type="email" required />
+            </div>
+            <div class="field">
+              <label for="profileRole">Role</label>
+              <select id="profileRole">
+                <option>Admin</option>
+                <option>Staff</option>
+              </select>
+            </div>
+            <div class="field" style="align-self:end;">
+              <button class="btn primary" type="submit">Update Profile</button>
+            </div>
+          </form>
+          <p class="note" id="settingsNote"></p>
+        </article>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE = {
+      users: "g20_users",
+      session: "g20_session",
+      clients: "g20_clients",
+      tasks: "g20_tasks",
+      profile: "g20_profile",
+      dark: "g20_dark"
+    };
+
+    const teamMembers = [
+      { name: "Emmanuel Buabeng", role: "Team Lead / Admin", studentId: "UG-L200-001" },
+      { name: "Akua Mensah", role: "Project Coordinator", studentId: "UG-L200-002" },
+      { name: "Kwame Ofori", role: "Frontend Developer", studentId: "UG-L200-003" },
+      { name: "Nana Yaw Asare", role: "Backend Analyst", studentId: "UG-L200-004" },
+      { name: "Ama Serwaa", role: "UI/UX Designer", studentId: "UG-L200-005" },
+      { name: "Kojo Agyeman", role: "QA & Testing", studentId: "UG-L200-006" },
+      { name: "Efua Boateng", role: "Documentation", studentId: "UG-L200-007" }
+    ];
+
+    const state = {
+      user: null,
+      clients: [],
+      tasks: [],
+      selectedClientId: null
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function readJSON(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch {
+        return fallback;
+      }
+    }
+
+    function writeJSON(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function seedData() {
+      if (!localStorage.getItem(STORAGE.users)) {
+        writeJSON(STORAGE.users, [
+          { username: "admin", password: "admin123", role: "Admin" },
+          { username: "staff", password: "staff123", role: "Staff" }
+        ]);
+      }
+
+      if (!localStorage.getItem(STORAGE.clients)) {
+        writeJSON(STORAGE.clients, [
+          {
+            id: crypto.randomUUID(),
+            name: "Kofi Annan",
+            company: "Akan Foods",
+            email: "kofi@akanfoods.com",
+            phone: "+233241112233",
+            status: "Active",
+            budget: 120000,
+            paid: 55000
+          }
+        ]);
+      }
+
+      if (!localStorage.getItem(STORAGE.tasks)) {
+        const sampleClient = readJSON(STORAGE.clients, [])[0];
+        writeJSON(STORAGE.tasks, sampleClient ? [{
+          id: crypto.randomUUID(),
+          clientId: sampleClient.id,
+          text: "Prepare kickoff meeting",
+          dueDate: "",
+          status: "Pending"
+        }] : []);
+      }
+
+      if (!localStorage.getItem(STORAGE.profile)) {
+        writeJSON(STORAGE.profile, { name: "User", email: "user@group20.com", role: "Staff" });
+      }
+    }
+
+    function applyDarkMode() {
+      const isDark = localStorage.getItem(STORAGE.dark) === "1";
+      document.body.classList.toggle("dark", isDark);
+    }
+
+    function setScreen(view) {
+      document.querySelectorAll(".screen").forEach((el) => el.classList.add("hidden"));
+      $(view).classList.remove("hidden");
+      document.querySelectorAll(".nav-btn").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.view === view);
+      });
+      $("viewTitle").textContent = view.charAt(0).toUpperCase() + view.slice(1);
+    }
+
+    function syncState() {
+      state.clients = readJSON(STORAGE.clients, []);
+      state.tasks = readJSON(STORAGE.tasks, []);
+    }
+
+    function saveState() {
+      writeJSON(STORAGE.clients, state.clients);
+      writeJSON(STORAGE.tasks, state.tasks);
+    }
+
+    function money(n) {
+      return Number(n || 0).toLocaleString();
+    }
+
+    function renderMetrics() {
+      const totalClients = state.clients.length;
+      const activeProjects = state.clients.filter((c) => c.status === "Active").length;
+      const totalBudget = state.clients.reduce((sum, c) => sum + Number(c.budget || 0), 0);
+      const totalPaid = state.clients.reduce((sum, c) => sum + Number(c.paid || 0), 0);
+      const pendingTasks = state.tasks.filter((t) => t.status === "Pending").length;
+
+      $("metricClients").textContent = totalClients;
+      $("metricActive").textContent = activeProjects;
+      $("metricRevenue").textContent = `${money(totalBudget)} / ${money(totalPaid)}`;
+      $("metricPending").textContent = pendingTasks;
+    }
+
+    function filteredClients() {
+      const q = $("searchInput").value.trim().toLowerCase();
+      const status = $("statusFilter").value;
+      return state.clients.filter((c) => {
+        const nameMatch = c.name.toLowerCase().includes(q);
+        const statusMatch = !status || c.status === status;
+        return nameMatch && statusMatch;
+      });
+    }
+
+    function canDelete() {
+      return state.user?.role === "Admin";
+    }
+
+    function renderClients() {
+      const rows = filteredClients().map((c) => `
+        <tr>
+          <td>${c.name}</td>
+          <td>${c.company}</td>
+          <td>${c.email}</td>
+          <td>${c.phone}</td>
+          <td><span class="status">${c.status}</span></td>
+          <td>${money(c.budget)}</td>
+          <td>${money(c.paid)}</td>
+          <td style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn neutral" onclick="viewClient('${c.id}')">View</button>
+            <button class="btn neutral" onclick="editClient('${c.id}')">Edit</button>
+            <button class="btn neutral" onclick="selectClientTasks('${c.id}')">Tasks</button>
+            ${canDelete() ? `<button class="btn danger" onclick="deleteClient('${c.id}')">Delete</button>` : ""}
+          </td>
+        </tr>`).join("");
+
+      $("clientsBody").innerHTML = rows || `<tr><td colspan="8" class="note">No clients found.</td></tr>`;
+      renderMetrics();
+    }
+
+    function resetClientForm() {
+      $("clientForm").reset();
+      $("clientId").value = "";
+      $("cStatus").value = "Active";
+      $("cBudget").value = 0;
+      $("cPaid").value = 0;
+      $("editorTitle").textContent = "Add Client";
+    }
+
+    function openClientEditor() {
+      $("clientEditorWrap").classList.remove("hidden");
+      $("clientEditorWrap").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    window.viewClient = function(id) {
+      const c = state.clients.find((x) => x.id === id);
+      if (!c) return;
+      alert(`Client Details\n\nName: ${c.name}\nCompany: ${c.company}\nEmail: ${c.email}\nPhone: ${c.phone}\nStatus: ${c.status}\nBudget: GHS ${money(c.budget)}\nPaid: GHS ${money(c.paid)}`);
+    };
+
+    window.editClient = function(id) {
+      const c = state.clients.find((x) => x.id === id);
+      if (!c) return;
+      $("clientId").value = c.id;
+      $("cName").value = c.name;
+      $("cCompany").value = c.company;
+      $("cEmail").value = c.email;
+      $("cPhone").value = c.phone;
+      $("cStatus").value = c.status;
+      $("cBudget").value = c.budget;
+      $("cPaid").value = c.paid;
+      $("editorTitle").textContent = "Edit Client";
+      openClientEditor();
+    };
+
+    window.deleteClient = function(id) {
+      if (!canDelete()) {
+        alert("Only Admin can delete clients.");
+        return;
+      }
+      if (!confirm("Delete this client and linked tasks?")) return;
+      state.clients = state.clients.filter((c) => c.id !== id);
+      state.tasks = state.tasks.filter((t) => t.clientId !== id);
+      if (state.selectedClientId === id) state.selectedClientId = null;
+      saveState();
+      renderClients();
+      renderTasks();
+    };
+
+    window.selectClientTasks = function(id) {
+      state.selectedClientId = id;
+      renderTasks();
+      $("taskForm").classList.remove("hidden");
+    };
+
+    function renderTasks() {
+      const client = state.clients.find((c) => c.id === state.selectedClientId);
+      if (!client) {
+        $("taskTitle").textContent = "Task Management";
+        $("taskHint").textContent = "Select a client to manage tasks.";
+        $("taskList").innerHTML = "";
+        $("taskForm").classList.add("hidden");
+        renderMetrics();
+        return;
+      }
+
+      $("taskTitle").textContent = `Task Management — ${client.name}`;
+      $("taskHint").textContent = "Tasks are linked to this client.";
+      const tasks = state.tasks.filter((t) => t.clientId === client.id);
+      $("taskList").innerHTML = tasks.map((t) => `
+        <li class="task-item">
+          <div>
+            <strong>${t.text}</strong><br>
+            <span class="note">${t.dueDate ? `Due: ${t.dueDate} · ` : ""}${t.status}</span>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn neutral" onclick="toggleTask('${t.id}')">${t.status === "Pending" ? "Mark Done" : "Reopen"}</button>
+            <button class="btn danger" onclick="removeTask('${t.id}')">Delete</button>
+          </div>
+        </li>`).join("") || `<li class="note">No tasks for this client yet.</li>`;
+
+      renderMetrics();
+    }
+
+    window.toggleTask = function(id) {
+      const t = state.tasks.find((x) => x.id === id);
+      if (!t) return;
+      t.status = t.status === "Pending" ? "Done" : "Pending";
+      saveState();
+      renderTasks();
+    };
+
+    window.removeTask = function(id) {
+      state.tasks = state.tasks.filter((t) => t.id !== id);
+      saveState();
+      renderTasks();
+    };
+
+    function exportCSV() {
+      const headers = ["Name", "Company", "Email", "Phone", "Project Status", "Budget", "Paid"];
+      const rows = state.clients.map((c) => [
+        c.name, c.company, c.email, c.phone, c.status, Number(c.budget || 0), Number(c.paid || 0)
+      ]);
+      const csv = [headers, ...rows]
+        .map((row) => row.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(","))
+        .join("\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "clients.csv";
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    function renderTeam() {
+      $("teamGrid").innerHTML = teamMembers.map((m) => `
+        <article class="team-card">
+          <strong>${m.name}</strong>
+          <div>${m.role}</div>
+          <div class="note">Student ID: ${m.studentId}</div>
+        </article>`).join("");
+    }
+
+    function initApp() {
+      applyDarkMode();
+      seedData();
+      syncState();
+
+      const session = readJSON(STORAGE.session, null);
+      if (session) {
+        state.user = session;
+        $("loginView").classList.add("hidden");
+        $("appView").classList.remove("hidden");
+      }
+
+      renderTeam();
+      renderClients();
+      renderTasks();
+      bindEvents();
+      refreshUserUI();
+    }
+
+    function refreshUserUI() {
+      if (!state.user) return;
+      $("userPill").textContent = `${state.user.username} (${state.user.role})`;
+      const profile = readJSON(STORAGE.profile, { name: "", email: "", role: "Staff" });
+      $("profileName").value = profile.name;
+      $("profileEmail").value = profile.email;
+      $("profileRole").value = profile.role;
+    }
+
+    function bindEvents() {
+      $("loginForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const users = readJSON(STORAGE.users, []);
+        const username = $("username").value.trim();
+        const password = $("password").value;
+        const found = users.find((u) => u.username === username && u.password === password);
+        if (!found) {
+          $("loginError").textContent = "Invalid login credentials.";
+          return;
+        }
+
+        state.user = { username: found.username, role: found.role };
+        writeJSON(STORAGE.session, state.user);
+        $("loginError").textContent = "";
+        $("loginView").classList.add("hidden");
+        $("appView").classList.remove("hidden");
+        refreshUserUI();
+      });
+
+      document.querySelectorAll(".nav-btn").forEach((btn) => {
+        btn.addEventListener("click", () => setScreen(btn.dataset.view));
+      });
+
+      $("darkModeBtn").addEventListener("click", () => {
+        const next = localStorage.getItem(STORAGE.dark) === "1" ? "0" : "1";
+        localStorage.setItem(STORAGE.dark, next);
+        applyDarkMode();
+      });
+
+      $("logoutBtn").addEventListener("click", () => {
+        localStorage.removeItem(STORAGE.session);
+        location.reload();
+      });
+
+      $("newClientBtn").addEventListener("click", () => {
+        resetClientForm();
+        openClientEditor();
+      });
+
+      $("cancelClientBtn").addEventListener("click", () => {
+        $("clientEditorWrap").classList.add("hidden");
+        resetClientForm();
+      });
+
+      $("clientForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const payload = {
+          id: $("clientId").value || crypto.randomUUID(),
+          name: $("cName").value.trim(),
+          company: $("cCompany").value.trim(),
+          email: $("cEmail").value.trim(),
+          phone: $("cPhone").value.trim(),
+          status: $("cStatus").value,
+          budget: Number($("cBudget").value || 0),
+          paid: Number($("cPaid").value || 0)
+        };
+
+        const idx = state.clients.findIndex((c) => c.id === payload.id);
+        if (idx >= 0) {
+          state.clients[idx] = payload;
+        } else {
+          state.clients.push(payload);
+        }
+
+        saveState();
+        renderClients();
+        $("clientEditorWrap").classList.add("hidden");
+        resetClientForm();
+      });
+
+      $("taskForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (!state.selectedClientId) return;
+        state.tasks.push({
+          id: crypto.randomUUID(),
+          clientId: state.selectedClientId,
+          text: $("taskText").value.trim(),
+          dueDate: $("taskDue").value,
+          status: $("taskStatus").value
+        });
+        saveState();
+        $("taskForm").reset();
+        $("taskStatus").value = "Pending";
+        renderTasks();
+      });
+
+      $("searchInput").addEventListener("input", renderClients);
+      $("statusFilter").addEventListener("change", renderClients);
+      $("exportBtn").addEventListener("click", exportCSV);
+
+      $("settingsForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const profile = {
+          name: $("profileName").value.trim(),
+          email: $("profileEmail").value.trim(),
+          role: $("profileRole").value
+        };
+        writeJSON(STORAGE.profile, profile);
+        $("settingsNote").textContent = "Profile updated successfully.";
+      });
+    }
+
+    initApp();
+  </script>
+</body>
+</html>
